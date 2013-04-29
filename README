@@ -2,12 +2,10 @@ MPU9150Lib is an implementation of 9-axis data fusion on an Arduino using the In
 
 April 29, 2013
 --------------
-Added two parameters to the library init() function. The first controls the magnetometer update rate
-separately from the DMP update rate. The second controls the low pass filter setting. See MPU9150Lib.h
+Added two parameters to the library init() function. The first controls the magnetometer update rate separately from the DMP update rate. The second controls the low pass filter setting. See MPU9150Lib.h
 for more details.
 
-The calibrated accelerometer data should now reflect the correct offsets. The DMP only puts raw accel data 
-in the FIFO so the library now adjusts the accel values based on the calibration data.
+The calibrated accelerometer data should now reflect the correct offsets. The DMP only puts raw accel data in the FIFO so the library now adjusts the accel values based on the calibration data.
 
 March 30, 2013
 --------------
