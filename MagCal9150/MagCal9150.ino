@@ -37,7 +37,12 @@ CALLIB_DATA calData;                                       // the calibration da
 
 //  MPU_UPDATE_RATE defines the rate (in Hz) at which the MPU updates the sensor data and DMP output
 
-#define MPU_UPDATE_RATE  (10)
+#define MPU_UPDATE_RATE  (20)
+
+//  MAG_UPDATE_RATE defines the rate (in Hz) at which the MPU updates the magnetometer data
+//  MAG_UPDATE_RATE should be less than or equal to the MPU_UPDATE_RATE
+
+#define MAG_UPDATE_RATE  (20)
 
 //  SERIAL_PORT_SPEED defines the speed to use for the debug serial port
 
@@ -59,7 +64,7 @@ void setup()
   Serial.println("MagCal9150 starting");
   Serial.println("Enter s to save current data to EEPROM");
   Wire.begin();
-  MPU.init(MPU_UPDATE_RATE);                               // start the MPU
+  MPU.init(MPU_UPDATE_RATE, 5, MAG_UPDATE_RATE);           // start the MPU
 }
 
 void loop()

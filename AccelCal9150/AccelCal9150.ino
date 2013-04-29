@@ -37,7 +37,11 @@ CALLIB_DATA calData;                                       // the calibration da
 
 //  MPU_UPDATE_RATE defines the rate (in Hz) at which the MPU updates the sensor data and DMP output
 
-#define MPU_UPDATE_RATE  (10)
+#define MPU_UPDATE_RATE  (20)
+
+//  MPU_LPF_RATE is the low pas filter rate and can be between 5 and 188Hz
+
+#define MPU_LPF_RATE   5
 
 //  SERIAL_PORT_SPEED defines the speed to use for the debug serial port
 
@@ -61,7 +65,7 @@ void setup()
   Wire.begin();
   
   MPU.useAccelCal(false);                                  // disable accel offsets
-  MPU.init(MPU_UPDATE_RATE);                               // start the MPU
+  MPU.init(MPU_UPDATE_RATE, 5, 1, MPU_LPF_RATE);           // start the MPU
 }
 
 void loop()

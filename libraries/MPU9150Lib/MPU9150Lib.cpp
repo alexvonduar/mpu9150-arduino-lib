@@ -118,19 +118,29 @@ void MPU9150Lib::useMagCal(boolean useCal)
   m_useMagCalibration = useCal;
 }
 
-boolean MPU9150Lib::init(int mpuRate, int magMix)
+boolean MPU9150Lib::init(int mpuRate, int magMix, int magRate, int lpf)
 {
   struct int_param_s int_param;
   int result;
-  long accelOffset[3];
 
+  if (magRate > 100)
+    return false;                                         // rate must be less than or equal to 100Hz
+  if (magRate < 1)
+    return false;
+  m_magInterval = (unsigned long)(1000 / magRate);        // record mag interval
+  m_lastMagSample = millis();
+
+  if (mpuRate > 1000)
+    return false;
+  if (mpuRate < 1)
+    return false;
   m_magMix = magMix;
   m_lastDMPYaw = 0;
   m_lastYaw = 0;
 
   // get calibration data if it's there
 
-  if (calLibRead(&m_calData)) {                                      // use calibration data if it's there and wanted
+  if (calLibRead(&m_calData)) {                             // use calibration data if it's there and wanted
     m_useMagCalibration &= m_calData.magValid;
     m_useAccelCalibration &= m_calData.accelValid;
 
@@ -146,15 +156,15 @@ boolean MPU9150Lib::init(int mpuRate, int magMix)
     }
 
      if (m_useAccelCalibration) {
-       accelOffset[0] = -((long)m_calData.accelMaxX + (long)m_calData.accelMinX) / 2;
-       accelOffset[1] = -((long)m_calData.accelMaxY + (long)m_calData.accelMinY) / 2;
-       accelOffset[2] = -((long)m_calData.accelMaxZ + (long)m_calData.accelMinZ) / 2;
+       m_accelOffset[0] = -((long)m_calData.accelMaxX + (long)m_calData.accelMinX) / 2;
+       m_accelOffset[1] = -((long)m_calData.accelMaxY + (long)m_calData.accelMinY) / 2;
+       m_accelOffset[2] = -((long)m_calData.accelMaxZ + (long)m_calData.accelMinZ) / 2;
 
-	   mpu_set_accel_bias(accelOffset);
+       mpu_set_accel_bias(m_accelOffset);
 
-       m_accelXRange = m_calData.accelMaxX + accelOffset[0];
-       m_accelYRange = m_calData.accelMaxY + accelOffset[1];
-       m_accelZRange = m_calData.accelMaxZ + accelOffset[2];
+       m_accelXRange = m_calData.accelMaxX + (short)m_accelOffset[0];
+       m_accelYRange = m_calData.accelMaxY + (short)m_accelOffset[1];
+       m_accelZRange = m_calData.accelMaxZ + (short)m_accelOffset[2];
      }
   }
 
@@ -183,7 +193,8 @@ boolean MPU9150Lib::init(int mpuRate, int magMix)
   mpu_set_sensors(INV_XYZ_GYRO | INV_XYZ_ACCEL | INV_XYZ_COMPASS);   // enable all of the sensors
   mpu_configure_fifo(INV_XYZ_GYRO | INV_XYZ_ACCEL);                  // get accel and gyro data in the FIFO also
   mpu_set_sample_rate(mpuRate);                                      // set the update rate
-  mpu_set_compass_sample_rate(mpuRate);                              // set the compass update rate to match
+  mpu_set_lpf(lpf);                                                  // set the low pass filter
+  mpu_set_compass_sample_rate(magRate);                              // set the compass update rate to match
 
 #ifdef MPULIB_DEBUG
   Serial.println("Loading firmware");
@@ -219,7 +230,8 @@ boolean MPU9150Lib::read()
     unsigned long timestamp;
    
     mpu_get_int_status(&intStatus);                       // get the current MPU state
-    if ((intStatus & MPU_INT_STATUS_DMP_0) == 0)          // return false if definitely not ready yet
+    if ((intStatus & (MPU_INT_STATUS_DMP | MPU_INT_STATUS_DMP_0))
+            != (MPU_INT_STATUS_DMP | MPU_INT_STATUS_DMP_0))
         return false;
         
     //  get the data from the fifo
@@ -228,14 +240,29 @@ boolean MPU9150Lib::read()
       return false;
     }      
     
-    //  got the fifo data so now get the mag data
+    //  got the fifo data so now get the mag data if it's time
     
-    if ((result = mpu_get_compass_reg(m_rawMag, &timestamp)) != 0) {
+    if ((millis() - m_lastMagSample) >= m_magInterval) {
+      if ((result = mpu_get_compass_reg(m_rawMag, &timestamp)) != 0) {
 #ifdef MPULIB_DEBUG
-         Serial.print("Failed to read compass: "); 
-         Serial.println(result); 
-         return false;
+        Serial.print("Failed to read compass: ");
+        Serial.println(result);
 #endif
+        return false;
+      }
+      //	*** Note mag axes are changed here to align with gyros: Y = -X, X = Y
+
+      m_lastMagSample = millis();
+
+      if (m_useMagCalibration) {
+        m_calMag[VEC3_Y] = -(short)(((long)(m_rawMag[VEC3_X] - m_magXOffset) * (long)SENSOR_RANGE) / (long)m_magXRange);
+        m_calMag[VEC3_X] = (short)(((long)(m_rawMag[VEC3_Y] - m_magYOffset) * (long)SENSOR_RANGE) / (long)m_magYRange);
+        m_calMag[VEC3_Z] = (short)(((long)(m_rawMag[VEC3_Z] - m_magZOffset) * (long)SENSOR_RANGE) / (long)m_magZRange);
+      } else {
+        m_calMag[VEC3_Y] = -m_rawMag[VEC3_X];
+        m_calMag[VEC3_X] = m_rawMag[VEC3_Y];
+        m_calMag[VEC3_Z] = m_rawMag[VEC3_Z];
+      }
     }
     
     // got the raw data - now process
@@ -248,24 +275,16 @@ boolean MPU9150Lib::read()
     
     MPUQuaternionQuaternionToEuler(m_dmpQuaternion, m_dmpEulerPose);
 
-	//	*** Note mag axes are changed here to align with gyros: Y = -X, X = Y
-
-    if (m_useMagCalibration) {
-      m_calMag[VEC3_Y] = -(short)(((long)(m_rawMag[VEC3_X] - m_magXOffset) * (long)SENSOR_RANGE) / (long)m_magXRange);
-      m_calMag[VEC3_X] = (short)(((long)(m_rawMag[VEC3_Y] - m_magYOffset) * (long)SENSOR_RANGE) / (long)m_magYRange);
-      m_calMag[VEC3_Z] = (short)(((long)(m_rawMag[VEC3_Z] - m_magZOffset) * (long)SENSOR_RANGE) / (long)m_magZRange);
-    } else {
-      m_calMag[VEC3_Y] = -m_rawMag[VEC3_X];
-      m_calMag[VEC3_X] = m_rawMag[VEC3_Y];
-      m_calMag[VEC3_Z] = m_rawMag[VEC3_Z];
-    }
 
     // Scale accel data 
 
     if (m_useAccelCalibration) {
-      m_calAccel[VEC3_X] = -(short)(((long)m_rawAccel[VEC3_X] * (long)SENSOR_RANGE) / (long)m_accelXRange);
-      m_calAccel[VEC3_Y] = (short)(((long)m_rawAccel[VEC3_Y] * (long)SENSOR_RANGE) / (long)m_accelYRange);
-      m_calAccel[VEC3_Z] = (short)(((long)m_rawAccel[VEC3_Z] * (long)SENSOR_RANGE) / (long)m_accelZRange);
+      m_calAccel[VEC3_X] = -(short)((((long)m_rawAccel[VEC3_X] + m_accelOffset[0])
+                                      * (long)SENSOR_RANGE) / (long)m_accelXRange);
+      m_calAccel[VEC3_Y] = (short)((((long)m_rawAccel[VEC3_Y] + m_accelOffset[1])
+                                      * (long)SENSOR_RANGE) / (long)m_accelYRange);
+      m_calAccel[VEC3_Z] = (short)((((long)m_rawAccel[VEC3_Z] + m_accelOffset[2])
+                                      * (long)SENSOR_RANGE) / (long)m_accelZRange);
     } else {
       m_calAccel[VEC3_X] = -m_rawAccel[VEC3_X];
       m_calAccel[VEC3_Y] = m_rawAccel[VEC3_Y];
@@ -332,7 +351,7 @@ void MPU9150Lib::dataFusion()
     deltaMagYaw = (2.0f * (float)M_PI + deltaMagYaw);
 
   if (m_magMix > 0) {
-    newYaw += deltaMagYaw / m_magMix;                             // apply some of the correction
+    newYaw += deltaMagYaw / m_magMix;                           // apply some of the correction
 
     if (newYaw > (2.0f * (float)M_PI))				            // need 0 <= newYaw <= 2*PI
       newYaw -= 2.0f * (float)M_PI;

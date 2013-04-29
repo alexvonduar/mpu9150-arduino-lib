@@ -38,7 +38,12 @@ MPU9150Lib MPU;                                              // the MPU object
 
 //  MPU_UPDATE_RATE defines the rate (in Hz) at which the MPU updates the sensor data and DMP output
 
-#define MPU_UPDATE_RATE  (10)
+#define MPU_UPDATE_RATE  (20)
+
+//  MAG_UPDATE_RATE defines the rate (in Hz) at which the MPU updates the magnetometer data
+//  MAG_UPDATE_RATE should be less than or equal to the MPU_UPDATE_RATE
+
+#define MAG_UPDATE_RATE  (10)
 
 //  MPU_MAG_MIX defines the influence that the magnetometer has on the yaw output.
 //  The magnetometer itself is quite noisy so some mixing with the gyro yaw can help
@@ -48,6 +53,10 @@ MPU9150Lib MPU;                                              // the MPU object
 #define  MPU_MAG_MIX_MAG_ONLY           1                  // just use magnetometer and no gyro yaw
 #define  MPU_MAG_MIX_GYRO_AND_MAG       10                 // a good mix value 
 #define  MPU_MAG_MIX_GYRO_AND_SOME_MAG  50                 // mainly gyros with a bit of mag correction 
+
+//  MPU_LPF_RATE is the low pas filter rate and can be between 5 and 188Hz
+
+#define MPU_LPF_RATE   188
 
 //  SERIAL_PORT_SPEED defines the speed to use for the debug serial port
 
@@ -60,7 +69,7 @@ void setup()
   Serial.begin(SERIAL_PORT_SPEED);
   Serial.println("Accel9150 starting");
   Wire.begin();
-  MPU.init(MPU_UPDATE_RATE, MPU_MAG_MIX_GYRO_AND_MAG);     // start the MPU
+  MPU.init(MPU_UPDATE_RATE, MPU_MAG_MIX_GYRO_AND_MAG, MAG_UPDATE_RATE, MPU_LPF_RATE);     // start the MPU
 
   //  set up the initial gravity vector for quaternion rotation - max value down the z axis
   

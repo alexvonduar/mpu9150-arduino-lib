@@ -57,8 +57,11 @@ public:
   //   1 = just use magnetometer with no input from gyros
   //   2-n = mix the two. Higher numbers decrease correction from magnetometer
   // It returns false if something went wrong with the initialization.
+  // magRate is the magnetometer update rate in Hz. magRate <= mpuRate.
+  //   Also, magRate must be <= 100Hz.
+  // lpf is the low pass filter setting - can be between 5Hz and 188Hz.
     
-  boolean init(int mpuRate, int magMix = 5);
+  boolean init(int mpuRate, int magMix = 5, int magRate = 10, int lpf = 42);
   
   //  read checks to see if there's been a new update.
   //  returns true if yes, false if not.
@@ -102,6 +105,8 @@ private:
   boolean m_useMagCalibration;                              // true if use mag calibration
   boolean m_useAccelCalibration;                            // true if use mag calibration
   int m_magMix;                                             // controls gyro and magnetometer mixing for yaw
+  unsigned long m_magInterval;                              // interval between mag reads in mS
+  unsigned long m_lastMagSample;                            // last time mag was read
 
   void dataFusion();                                        // fuse mag data with the dmp quaternion
 
@@ -120,6 +125,8 @@ private:
   short m_accelXRange;										// range of accel X
   short m_accelYRange;										// range of accel Y
   short m_accelZRange;										// range of accel Z
+  long m_accelOffset[3];                                    // offsets for accel
+
 };
 
 #endif // _MPU9150LIB_H_
