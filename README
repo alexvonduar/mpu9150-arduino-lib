@@ -1,5 +1,11 @@
 MPU9150Lib is an implementation of 9-axis data fusion on an Arduino using the InvenSense MPU-9150 IMU. See MPU9150Lib.pdf for details.
 
+April 30, 2013
+--------------
+Moved mpu_set_lpf call so that it is the last call made in init().
+
+Adjusted the way that calibrated accels is calculated.
+
 April 29, 2013
 --------------
 Added two parameters to the library init() function. The first controls the magnetometer update rate separately from the DMP update rate. The second controls the low pass filter setting. See MPU9150Lib.h
