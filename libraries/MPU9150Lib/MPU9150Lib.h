@@ -60,8 +60,9 @@ public:
   // magRate is the magnetometer update rate in Hz. magRate <= mpuRate.
   //   Also, magRate must be <= 100Hz.
   // lpf is the low pass filter setting - can be between 5Hz and 188Hz.
+  //   0 means let the MotionDriver library decide.
     
-  boolean init(int mpuRate, int magMix = 5, int magRate = 10, int lpf = 42);
+  boolean init(int mpuRate, int magMix = 5, int magRate = 10, int lpf = 0);
   
   //  read checks to see if there's been a new update.
   //  returns true if yes, false if not.

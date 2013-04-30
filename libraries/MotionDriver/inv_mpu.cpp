@@ -1129,7 +1129,6 @@ int mpu_get_lpf(unsigned short *lpf)
 int mpu_set_lpf(unsigned short lpf)
 {
     unsigned char data;
-
     if (!(st.chip_cfg.sensors))
         return -1;
 

@@ -56,7 +56,7 @@ MPU9150Lib MPU;                                              // the MPU object
 
 //  MPU_LPF_RATE is the low pas filter rate and can be between 5 and 188Hz
 
-#define MPU_LPF_RATE   188
+#define MPU_LPF_RATE   5
 
 //  SERIAL_PORT_SPEED defines the speed to use for the debug serial port
 

@@ -192,9 +192,6 @@ boolean MPU9150Lib::init(int mpuRate, int magMix, int magRate, int lpf)
   }
   mpu_set_sensors(INV_XYZ_GYRO | INV_XYZ_ACCEL | INV_XYZ_COMPASS);   // enable all of the sensors
   mpu_configure_fifo(INV_XYZ_GYRO | INV_XYZ_ACCEL);                  // get accel and gyro data in the FIFO also
-  mpu_set_sample_rate(mpuRate);                                      // set the update rate
-  mpu_set_lpf(lpf);                                                  // set the low pass filter
-  mpu_set_compass_sample_rate(magRate);                              // set the compass update rate to match
 
 #ifdef MPULIB_DEBUG
   Serial.println("Loading firmware");
@@ -218,6 +215,10 @@ boolean MPU9150Lib::init(int mpuRate, int magMix, int magRate, int lpf)
 #endif
     return false;
   }
+  mpu_set_sample_rate(mpuRate);                                      // set the update rate
+  mpu_set_compass_sample_rate(magRate);                              // set the compass update rate to match
+  if (lpf != 0)
+    mpu_set_lpf(lpf);                                                // set the low pass filter
   return true;
 }
 
@@ -279,12 +280,33 @@ boolean MPU9150Lib::read()
     // Scale accel data 
 
     if (m_useAccelCalibration) {
-      m_calAccel[VEC3_X] = -(short)((((long)m_rawAccel[VEC3_X] + m_accelOffset[0])
-                                      * (long)SENSOR_RANGE) / (long)m_accelXRange);
-      m_calAccel[VEC3_Y] = (short)((((long)m_rawAccel[VEC3_Y] + m_accelOffset[1])
-                                      * (long)SENSOR_RANGE) / (long)m_accelYRange);
-      m_calAccel[VEC3_Z] = (short)((((long)m_rawAccel[VEC3_Z] + m_accelOffset[2])
-                                      * (long)SENSOR_RANGE) / (long)m_accelZRange);
+/*        m_calAccel[VEC3_X] = -(short)((((long)m_rawAccel[VEC3_X] + m_accelOffset[0])
+                                        * (long)SENSOR_RANGE) / (long)m_accelXRange);
+        m_calAccel[VEC3_Y] = (short)((((long)m_rawAccel[VEC3_Y] + m_accelOffset[1])
+                                        * (long)SENSOR_RANGE) / (long)m_accelYRange);
+        m_calAccel[VEC3_Z] = (short)((((long)m_rawAccel[VEC3_Z] + m_accelOffset[2])
+                                        * (long)SENSOR_RANGE) / (long)m_accelZRange);
+*/        if (m_rawAccel[VEC3_X] >= 0)
+            m_calAccel[VEC3_X] = -(short)((((long)m_rawAccel[VEC3_X])
+                                        * (long)SENSOR_RANGE) / (long)m_calData.accelMaxX);
+        else
+            m_calAccel[VEC3_X] = -(short)((((long)m_rawAccel[VEC3_X])
+                                        * (long)SENSOR_RANGE) / -(long)m_calData.accelMinX);
+
+        if (m_rawAccel[VEC3_Y] >= 0)
+            m_calAccel[VEC3_Y] = (short)((((long)m_rawAccel[VEC3_Y])
+                                        * (long)SENSOR_RANGE) / (long)m_calData.accelMaxY);
+        else
+            m_calAccel[VEC3_Y] = (short)((((long)m_rawAccel[VEC3_Y])
+                                        * (long)SENSOR_RANGE) / -(long)m_calData.accelMinY);
+
+        if (m_rawAccel[VEC3_Z] >= 0)
+            m_calAccel[VEC3_Z] = (short)((((long)m_rawAccel[VEC3_Z])
+                                        * (long)SENSOR_RANGE) / (long)m_calData.accelMaxZ);
+        else
+            m_calAccel[VEC3_Z] = (short)((((long)m_rawAccel[VEC3_Z])
+                                        * (long)SENSOR_RANGE) / -(long)m_calData.accelMinZ);
+
     } else {
       m_calAccel[VEC3_X] = -m_rawAccel[VEC3_X];
       m_calAccel[VEC3_Y] = m_rawAccel[VEC3_Y];
