@@ -31,6 +31,12 @@
 #include <inv_mpu_dmp_motion_driver.h>
 #include <EEPROM.h>
 
+//  DEVICE_TO_USE selects whether the IMU at address 0x68 (default) or 0x69 is used
+//    0 = use the device at 0x68
+//    1 = use the device at ox69
+
+#define  DEVICE_TO_USE    0
+
 MPU9150Lib MPU;                                              // the MPU object
 
 //  MPU_UPDATE_RATE defines the rate (in Hz) at which the MPU updates the sensor data and DMP output
@@ -62,13 +68,15 @@ MPU9150Lib MPU;                                              // the MPU object
 void setup()
 {
   Serial.begin(SERIAL_PORT_SPEED);
-  Serial.println("Arduino9150 starting");
+  Serial.print("Arduino9150 starting using device "); Serial.println(DEVICE_TO_USE);
   Wire.begin();
+  MPU.selectDevice(DEVICE_TO_USE);                        // only really necessary if using device 1
   MPU.init(MPU_UPDATE_RATE, MPU_MAG_MIX_GYRO_AND_MAG, MAG_UPDATE_RATE, MPU_LPF_RATE);   // start the MPU
 }
 
 void loop()
 {  
+  MPU.selectDevice(DEVICE_TO_USE);                         // only needed if device has changed since init but good form anyway
   if (MPU.read()) {                                        // get the latest data if ready yet
 //  MPU.printQuaternion(MPU.m_rawQuaternion);              // print the raw quaternion from the dmp
 //  MPU.printVector(MPU.m_rawMag);                         // print the raw mag data
