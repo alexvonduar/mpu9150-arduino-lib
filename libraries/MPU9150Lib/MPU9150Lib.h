@@ -44,6 +44,15 @@ public:
 
   MPU9150Lib();
 
+  // selectDevice() can be called to select a device:
+  //
+  //   0 = device at address 0x68 (default)
+  //   1 = device at address 0x69
+  //
+  // selectDevice() must be called before init()
+
+  void selectDevice(int device);
+
   // these two functions control if calibration data is used. Must be called before init()
   // if defaults (use mag and accel cal) aren't required.
 
@@ -105,6 +114,7 @@ private:
   CALLIB_DATA m_calData;                                    // calibration data
   boolean m_useMagCalibration;                              // true if use mag calibration
   boolean m_useAccelCalibration;                            // true if use mag calibration
+  byte m_device;                                            // IMU device index
   int m_magMix;                                             // controls gyro and magnetometer mixing for yaw
   unsigned long m_magInterval;                              // interval between mag reads in mS
   unsigned long m_lastMagSample;                            // last time mag was read

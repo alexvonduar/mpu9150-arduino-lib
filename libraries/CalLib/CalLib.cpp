@@ -24,35 +24,37 @@
 #include "CalLib.h"
 #include <EEPROM.h>
 
-void calLibErase()
+void calLibErase(byte device)
 {
-    EEPROM.write(0, 0);                            // just destroy the valid byte
+    EEPROM.write(sizeof(CALLIB_DATA) * device, 0); // just destroy the valid byte
 }
 
-void calLibWrite(CALLIB_DATA *calData)
+void calLibWrite(byte device, CALLIB_DATA *calData)
 {
   byte *ptr = (byte *)calData;
   byte length = sizeof(CALLIB_DATA);
+  int eeprom = sizeof(CALLIB_DATA) * device;
 
   calData->valid = CALLIB_DATA_VALID;
   
   for (byte i = 0; i < length; i++)
-    EEPROM.write(i, *ptr++);
+    EEPROM.write(eeprom + i, *ptr++);
 }
 
-boolean calLibRead(CALLIB_DATA *calData)
+boolean calLibRead(byte device, CALLIB_DATA *calData)
 {
   byte *ptr = (byte *)calData;
   byte length = sizeof(CALLIB_DATA);
+  int eeprom = sizeof(CALLIB_DATA) * device;
 
   calData->magValid = false;
   calData->accelValid = false;
 
-  if ((EEPROM.read(0) != CALLIB_DATA_VALID_LOW) ||   
-      (EEPROM.read(1) != CALLIB_DATA_VALID_HIGH))
+  if ((EEPROM.read(eeprom) != CALLIB_DATA_VALID_LOW) ||
+      (EEPROM.read(eeprom + 1) != CALLIB_DATA_VALID_HIGH))
     return false;                                  // invalid data
     
   for (byte i = 0; i < length; i++)
-    *ptr++ = EEPROM.read(i);
+    *ptr++ = EEPROM.read(eeprom + i);
   return true;  
 }

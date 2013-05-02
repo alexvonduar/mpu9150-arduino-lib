@@ -31,6 +31,10 @@
 #include <inv_mpu_dmp_motion_driver.h>
 #include <EEPROM.h>
 
+//  DEVICE_TO_CAILIBRATE should be set to 0 for the IMU at 0x68 and 1 for the IMU at 0x69
+
+#define  DEVICE_TO_CALIBRATE    1                        
+
 MPU9150Lib MPU;                                            // the MPU9150Lib object
 
 CALLIB_DATA calData;                                       // the calibration data
@@ -49,10 +53,10 @@ CALLIB_DATA calData;                                       // the calibration da
 
 void setup()
 {
-  calLibRead(&calData);                                    // pick up existing accel data if there   
+  calLibRead(DEVICE_TO_CALIBRATE, &calData);               // pick up existing accel data if there   
 
   calData.accelValid = false;
-  calData.accelMinX = 0x7fff;                                // init accel cal data
+  calData.accelMinX = 0x7fff;                              // init accel cal data
   calData.accelMaxX = 0x8000;
   calData.accelMinY = 0x7fff;                              
   calData.accelMaxY = 0x8000;
@@ -63,14 +67,18 @@ void setup()
   Serial.println("AccelCal9150 starting");
   Serial.println("Enter s to save current data to EEPROM");
   Wire.begin();
-  
+
+  MPU.selectDevice(DEVICE_TO_CALIBRATE);                   // select the correct device 
   MPU.useAccelCal(false);                                  // disable accel offsets
   MPU.init(MPU_UPDATE_RATE, 5, 1, MPU_LPF_RATE);           // start the MPU
+  Serial.print("Calibrating device "); Serial.println(DEVICE_TO_CALIBRATE);
 }
 
 void loop()
 {  
   boolean changed;
+  
+  MPU.selectDevice(DEVICE_TO_CALIBRATE);                   // not strictly needed here as the device never changes but good form
   if (MPU.read()) {                                        // get the latest data
     changed = false;
     if (MPU.m_rawAccel[VEC3_X] < calData.accelMinX) {
@@ -112,8 +120,8 @@ void loop()
   if (Serial.available()) {
     if (Serial.read() == 's') {                  // save the data
       calData.accelValid = true;
-      calLibWrite(&calData);
-      Serial.println("Accel cal data saved");
+      calLibWrite(DEVICE_TO_CALIBRATE, &calData);
+      Serial.print("Accel cal data saved for device "); Serial.println(DEVICE_TO_CALIBRATE);
     }
   }
 }

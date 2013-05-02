@@ -51,14 +51,14 @@ typedef struct
 
 //  calLibErase() erases any current data in the EEPROM
 
-void calLibErase();                
+void calLibErase(byte device);
 
 //  calLibWrite() writes new data to the EEPROM
 
-void calLibWrite(CALLIB_DATA * calData); 
+void calLibWrite(byte device, CALLIB_DATA * calData);
 
 //  calLibRead() reads existing data and returns true if valid else false in not.
 
-boolean calLibRead(CALLIB_DATA * calData); 
+boolean calLibRead(byte device, CALLIB_DATA * calData);
 
 #endif // _CALLIB_H_

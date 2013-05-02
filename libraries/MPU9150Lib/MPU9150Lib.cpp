@@ -106,6 +106,12 @@ MPU9150Lib::MPU9150Lib()
 
   m_useAccelCalibration = true;
   m_useMagCalibration = true;
+  m_device = 0;
+ }
+
+void MPU9150Lib::selectDevice(int device)
+{
+  m_device = device;
 }
 
 void MPU9150Lib::useAccelCal(boolean useCal)
@@ -123,6 +129,8 @@ boolean MPU9150Lib::init(int mpuRate, int magMix, int magRate, int lpf)
   struct int_param_s int_param;
   int result;
 
+  mpu_select_device(m_device);
+  dmp_select_device(m_device);
   if (magRate > 100)
     return false;                                         // rate must be less than or equal to 100Hz
   if (magRate < 1)
@@ -140,7 +148,7 @@ boolean MPU9150Lib::init(int mpuRate, int magMix, int magRate, int lpf)
 
   // get calibration data if it's there
 
-  if (calLibRead(&m_calData)) {                             // use calibration data if it's there and wanted
+  if (calLibRead(m_device, &m_calData)) {                 // use calibration data if it's there and wanted
     m_useMagCalibration &= m_calData.magValid;
     m_useAccelCalibration &= m_calData.accelValid;
 
@@ -230,6 +238,8 @@ boolean MPU9150Lib::read()
     unsigned char more;
     unsigned long timestamp;
    
+    mpu_select_device(m_device);
+    dmp_select_device(m_device);
     mpu_get_int_status(&intStatus);                       // get the current MPU state
     if ((intStatus & (MPU_INT_STATUS_DMP | MPU_INT_STATUS_DMP_0))
             != (MPU_INT_STATUS_DMP | MPU_INT_STATUS_DMP_0))

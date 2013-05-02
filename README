@@ -1,5 +1,13 @@
 MPU9150Lib is an implementation of 9-axis data fusion on an Arduino using the InvenSense MPU-9150 IMU. See MPU9150Lib.pdf for details.
 
+May 2, 2013
+-----------
+MPU9150Lib now supports two IMU chips on a single Arduino at addresses 0x68 and 0x69.
+
+Added a new sketch ArduinoDual9150 to demonstrate how to use two devices in a system.
+
+Modified calibration code so that two different IMUs can be calibrated. Set DEVICE_TO_CALIBRATE to 0 (the default) in the sketch to calibrate the MPU-9150 at address 0x68 or 1 to calibrate the MPU-9150 at address 0x69. In a dual MPU-9150 system, AccelCal9150 and MagCal9150 should be run with both settings in order to calibrate both devices. Each IMU has its own independent area in EEPROM for calibration data. 
+
 April 30, 2013
 --------------
 Moved mpu_set_lpf call so that it is the last call made in init().

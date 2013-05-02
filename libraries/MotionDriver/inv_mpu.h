@@ -27,6 +27,14 @@
 
 //#define  MPU_DEBUG
 
+//  This symbol defines how many devices are supported
+
+#define MPU_MAX_DEVICES 2
+
+//  Call this function before using the MPU to select the correct device
+
+int mpu_select_device(int device);
+
 inline void get_ms(long unsigned int *timestamp)
 {
     *timestamp = millis(); 

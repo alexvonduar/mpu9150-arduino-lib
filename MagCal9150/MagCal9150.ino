@@ -31,6 +31,10 @@
 #include <inv_mpu_dmp_motion_driver.h>
 #include <EEPROM.h>
 
+//  DEVICE_TO_CAILIBRATE should be set to 0 for the IMU at 0x68 and 1 for the IMU at 0x69
+
+#define  DEVICE_TO_CALIBRATE    0                      
+
 MPU9150Lib MPU;                                            // the MPU object
 
 CALLIB_DATA calData;                                       // the calibration data
@@ -50,7 +54,7 @@ CALLIB_DATA calData;                                       // the calibration da
 
 void setup()
 {
-  calLibRead(&calData);                                    // pick up existing accel data if there   
+  calLibRead(DEVICE_TO_CALIBRATE, &calData);               // pick up existing accel data if there   
 
   calData.magValid = false;
   calData.magMinX = 0x7fff;                                // init mag cal data
@@ -64,12 +68,16 @@ void setup()
   Serial.println("MagCal9150 starting");
   Serial.println("Enter s to save current data to EEPROM");
   Wire.begin();
+  MPU.selectDevice(DEVICE_TO_CALIBRATE);                   // select the correct device 
   MPU.init(MPU_UPDATE_RATE, 5, MAG_UPDATE_RATE);           // start the MPU
+  Serial.print("Calibrating device "); Serial.println(DEVICE_TO_CALIBRATE);
 }
 
 void loop()
 {  
   boolean changed;
+  
+  MPU.selectDevice(DEVICE_TO_CALIBRATE);                   // not strictly needed here as the device never changes but good form
   if (MPU.read()) {                                        // get the latest data
     changed = false;
     if (MPU.m_rawMag[VEC3_X] < calData.magMinX) {
@@ -111,8 +119,8 @@ void loop()
   if (Serial.available()) {
     if (Serial.read() == 's') {                  // save the data
       calData.magValid = true;
-      calLibWrite(&calData);
-      Serial.println("Mag cal data saved");
+      calLibWrite(DEVICE_TO_CALIBRATE, &calData);
+      Serial.print("Mag cal data saved for device "); Serial.println(DEVICE_TO_CALIBRATE);
     }
   }
 }
