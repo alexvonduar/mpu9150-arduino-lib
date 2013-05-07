@@ -30,23 +30,28 @@
 #define CALLIB_DATA_VALID_LOW     0xfc // pattern to detect valid config - low byte
 #define CALLIB_DATA_VALID_HIGH    0x15 // pattern to detect valid config - high byte
 
+#ifdef __SAM3X8E__
+#define CALLIB_START  ((uint32_t *)(IFLASH1_ADDR + IFLASH1_SIZE - IFLASH1_PAGE_SIZE))
+#endif
+
 typedef struct
 {
   short valid;                        // should contain the valid pattern if a good config
-  boolean magValid;                   // true if mag data valid
+  short magValid;                     // true if mag data valid
   short magMinX;                      // mag min x value
   short magMaxX;                      // mag max x value
   short magMinY;                      // mag min y value
   short magMaxY;                      // mag max y value
   short magMinZ;                      // mag min z value
   short magMaxZ;                      // mag max z value 
-  boolean accelValid;                 // true if accel data valid
+  short accelValid;                   // true if accel data valid
   short accelMinX;                    // mag min x value
   short accelMaxX;                    // mag max x value
   short accelMinY;                    // mag min y value
   short accelMaxY;                    // mag max y value
   short accelMinZ;                    // mag min z value
   short accelMaxZ;                    // mag max z value
+  short unused;                       // must be multiple of 32 bits for Due
 } CALLIB_DATA;
 
 //  calLibErase() erases any current data in the EEPROM

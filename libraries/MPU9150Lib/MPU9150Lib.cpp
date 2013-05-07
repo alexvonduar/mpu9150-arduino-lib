@@ -25,7 +25,6 @@
 #include "inv_mpu.h"
 #include "inv_mpu_dmp_motion_driver.h"
 #include "MPUQuaternion.h"
-#include <EEPROM.h>
 
 ////////////////////////////////////////////////////////////////////////////
 //
@@ -119,6 +118,19 @@ void MPU9150Lib::useAccelCal(boolean useCal)
   m_useAccelCalibration = useCal;
 }
 
+void MPU9150Lib::disableAccelCal()
+{
+    if (!m_useAccelCalibration)
+        return;
+    m_useAccelCalibration = false;
+
+    m_accelOffset[0] = 0;
+    m_accelOffset[1] = 0;
+    m_accelOffset[2] = 0;
+
+    mpu_set_accel_bias(m_accelOffset);
+}
+
 void MPU9150Lib::useMagCal(boolean useCal)
 {
   m_useMagCalibration = useCal;
@@ -149,8 +161,8 @@ boolean MPU9150Lib::init(int mpuRate, int magMix, int magRate, int lpf)
   // get calibration data if it's there
 
   if (calLibRead(m_device, &m_calData)) {                 // use calibration data if it's there and wanted
-    m_useMagCalibration &= m_calData.magValid;
-    m_useAccelCalibration &= m_calData.accelValid;
+    m_useMagCalibration &= m_calData.magValid == 1;
+    m_useAccelCalibration &= m_calData.accelValid == 1;
 
     //  Process calibration data for runtime
 
@@ -174,6 +186,9 @@ boolean MPU9150Lib::init(int mpuRate, int magMix, int magRate, int lpf)
        m_accelYRange = m_calData.accelMaxY + (short)m_accelOffset[1];
        m_accelZRange = m_calData.accelMaxZ + (short)m_accelOffset[2];
      }
+  } else {
+      m_useMagCalibration = false;
+      m_useAccelCalibration = false;
   }
 
 #ifdef MPULIB_DEBUG

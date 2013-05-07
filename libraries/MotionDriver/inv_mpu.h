@@ -25,7 +25,7 @@
 
 //  Define this symbol to get debug messages
 
-//#define  MPU_DEBUG
+#define  MPU_DEBUG
 
 //  This symbol defines how many devices are supported
 

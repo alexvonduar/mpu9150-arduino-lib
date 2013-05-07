@@ -457,7 +457,11 @@ bool I2Cdev::writeBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint8_
     Serial.println(". Done.");
 #endif
 
+#ifdef __SAM3X8E__
+    return status > 0;
+#else
     return status == 0;
+#endif
 }
 
 /** Write multiple words to a 16-bit device register.
@@ -500,7 +504,11 @@ bool I2Cdev::writeWords(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint16
     Serial.println(". Done.");
 #endif
 
+#ifdef __SAM3X8E__
+    return status > 0;
+#else
     return status == 0;
+#endif
 }
 
 /** Default timeout value for read operations.

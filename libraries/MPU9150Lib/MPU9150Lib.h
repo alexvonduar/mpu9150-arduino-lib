@@ -78,6 +78,11 @@ public:
   
   boolean read();
 
+  // disableAccelCal can be called while running to disable
+  // accel bias offsets while performing accel calibration
+
+  void disableAccelCal();
+
   //  check if calibration in use
   
   boolean isMagCal();

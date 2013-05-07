@@ -22,6 +22,38 @@
 //  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "CalLib.h"
+#ifdef __SAM3X8E__
+
+// Due version
+
+#include "DueFlash.h"
+
+DueFlash flash;
+
+void calLibErase(byte device)
+{
+    uint32_t data = 0;
+
+    flash.write(CALLIB_START + sizeof(CALLIB_DATA) * device, &data, 1); // just destroy the valid byte
+}
+
+void calLibWrite(byte device, CALLIB_DATA *calData)
+{
+    calData->valid = CALLIB_DATA_VALID;
+
+    flash.write(CALLIB_START + sizeof(CALLIB_DATA) * device, (uint32_t *)calData, sizeof(CALLIB_DATA) / 4);
+}
+
+boolean calLibRead(byte device, CALLIB_DATA *calData)
+{
+    memcpy(calData, CALLIB_START + sizeof(CALLIB_DATA) * device, sizeof(CALLIB_DATA));
+    return calData->valid == CALLIB_DATA_VALID;
+}
+
+#else
+
+// AVR version
+
 #include <EEPROM.h>
 
 void calLibErase(byte device)
@@ -58,3 +90,4 @@ boolean calLibRead(byte device, CALLIB_DATA *calData)
     *ptr++ = EEPROM.read(eeprom + i);
   return true;  
 }
+#endif

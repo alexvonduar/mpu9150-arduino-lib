@@ -2193,7 +2193,11 @@ int mpu_load_firmware(unsigned short length, const unsigned char *firmware,
         this_write = min(LOAD_CHUNK, length - ii);
         
         for (int progIndex = 0; progIndex < this_write; progIndex++)
+#ifdef __SAM3X8E__
+            progBuffer[progIndex] = firmware[ii + progIndex];
+#else
             progBuffer[progIndex] = pgm_read_byte(firmware + ii + progIndex);
+#endif
             
         if ((errCode = mpu_write_mem(ii, this_write, progBuffer))) {
 #ifdef MPU_DEBUG
