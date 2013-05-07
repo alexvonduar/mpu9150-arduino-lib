@@ -42,7 +42,7 @@ THE SOFTWARE.
 */
 
 #include "I2Cdev.h"
-
+//#define I2CDEV_SERIAL_DEBUG
 /** Default constructor.
  */
 I2Cdev::I2Cdev() {

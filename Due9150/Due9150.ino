@@ -88,6 +88,9 @@ int loopState;                                              // what code to run 
 
 static CALLIB_DATA calData;                                 // the calibration data
 
+long lastPollTime;                                          // last time the MPU-9150 was checked
+long pollInterval;                                          // gap between polls to avoid thrashing the I2C bus
+
 void magCalStart(void);
 void magCalLoop(void);
 void accelCalStart(void);
@@ -99,6 +102,17 @@ void mpuInit()
   dueMPU.init(MPU_UPDATE_RATE, MPU_MAG_MIX_GYRO_AND_MAG, MAG_UPDATE_RATE, MPU_LPF_RATE);   // start the MPU
 }
 
+boolean duePoll()
+{
+  if ((millis() - lastPollTime) < pollInterval)
+    return false;                                            // not time yet
+  if (dueMPU.read()) {
+    lastPollTime = millis();
+    return true;
+  } 
+  return false;                                              // try again next time round
+}
+
 void setup()
 {
   Serial.begin(SERIAL_PORT_SPEED);
@@ -106,6 +120,8 @@ void setup()
   Wire.begin();
   mpuInit();
   loopState = LOOPSTATE_NORMAL;
+  pollInterval = (1000 / MPU_UPDATE_RATE) - 1;              // a bit less than the minimum interval
+  lastPollTime = millis();
 }
 
 void loop()
@@ -127,7 +143,7 @@ void loop()
   dueMPU.selectDevice(DEVICE_TO_USE);                         // only needed if device has changed since init but good form anyway
   switch (loopState) {
     case LOOPSTATE_NORMAL:
-      if (dueMPU.read()) {                                    // get the latest data if ready yet
+      if (duePoll()) {                                        // get the latest data if ready yet
 //      dueMPU.printQuaternion(dueMPU.m_rawQuaternion);       // print the raw quaternion from the dmp
 //      dueMPU.printVector(dueMPU.m_rawMag);                  // print the raw mag data
 //      dueMPU.printVector(dueMPU.m_rawAccel);                // print the raw accel data
@@ -169,7 +185,7 @@ void magCalLoop()
 {
   boolean changed;
   
-  if (dueMPU.read()) {                                        // get the latest data
+  if (duePoll()) {                                         // get the latest data
     changed = false;
     if (dueMPU.m_rawMag[VEC3_X] < calData.magMinX) {
       calData.magMinX = dueMPU.m_rawMag[VEC3_X];
@@ -246,7 +262,7 @@ void accelCalLoop()
 {
   boolean changed;
   
-  if (dueMPU.read()) {                                        // get the latest data
+  if (duePoll()) {                                          // get the latest data
     changed = false;
     if (dueMPU.m_rawAccel[VEC3_X] < calData.accelMinX) {
       calData.accelMinX = dueMPU.m_rawAccel[VEC3_X];

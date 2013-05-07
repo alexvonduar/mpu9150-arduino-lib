@@ -6,7 +6,10 @@ MPU9150Lib now supports the Arduino Due.
 
 There is a new sketch, Due9150, and new versions of the libraries that allow the Arduino Due to be used with one or two MPU-9150s. The Due does not have EEPROM so calibration data is stored in flash. This means that it is lost every time that new code is uploaded as the Arduio IDE completely clears flash on every upload. Consequently, calibration software has been added to the main Due9150 sketch as switching between sketches is impossible. Check Due9150.ino for information on how to run the calibration code.
 
-It has been noticed that the MPU-9150 doesn't always restart properly (indicates error -6) with the Due and may need the board to be power cycled before the MPU-9150 starts up again. This is under investigation.
+*** Update **
+
+Please note that it is possible for a processor restart to interrupt an I2C transfer and this can leave the I2C bus in a hung state due to the MPU-9150 permanently pulling the SDA line low. Due9150 will display an error message if this occurs. The only known way to recover from this situation is to power cycle the system.
+
 
 May 2, 2013
 -----------
