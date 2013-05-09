@@ -220,7 +220,7 @@
 #ifdef __SAM3X8E__
 const uint8_t dmp_memory[DMP_CODE_SIZE] = {
 #else
-const prog_uchar dmp_memory[DMP_CODE_SIZE] PROGMEM = {
+const unsigned char dmp_memory[DMP_CODE_SIZE] PROGMEM = {
 #endif
     /* bank # 0 */
     0x00, 0x00, 0x70, 0x00, 0x00, 0x00, 0x00, 0x24, 0x00, 0x00, 0x00, 0x02, 0x00, 0x03, 0x00, 0x00,
