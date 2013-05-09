@@ -24,7 +24,7 @@
 #ifndef MPUVECTOR3_H_
 #define MPUVECTOR3_H_
 
-#include <arduino.h>
+#include <Arduino.h>
 #include <math.h>
 
 
