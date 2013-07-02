@@ -1,5 +1,13 @@
 MPU9150Lib is an implementation of 9-axis data fusion on an Arduino using the InvenSense MPU-9150 IMU. See MPU9150Lib.pdf for details.
 
+July 2, 2013
+------------
+Problems have been reported with the latest IDE (1.5) and USB Arduinos due to the code size being too large when taking into account the much large boot code. There is now a new #define:
+
+//#define MPU_MAXIMAL
+
+in inv_mpu.h that, when commented out (as it is by default), takes out some unused parts of the MotionDriver library. However, this is still insufficient so the example sketches will not currently fit on Leonardo and USB LilyPads.
+
 May 7, 2013
 -----------
 MPU9150Lib now supports the Arduino Due.

@@ -33,7 +33,7 @@
 
 //  DEVICE_TO_CAILIBRATE should be set to 0 for the IMU at 0x68 and 1 for the IMU at 0x69
 
-#define  DEVICE_TO_CALIBRATE    1                        
+#define  DEVICE_TO_CALIBRATE    0                        
 
 MPU9150Lib MPU;                                            // the MPU9150Lib object
 

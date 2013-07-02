@@ -27,6 +27,10 @@
 
 #define  MPU_DEBUG
 
+//  Define this symbol to enable rarely-used functions from library
+
+//#define MPU_MAXIMAL
+
 //  This symbol defines how many devices are supported
 
 #define MPU_MAX_DEVICES 2
@@ -139,8 +143,11 @@ int mpu_load_firmware(unsigned short length, const unsigned char *firmware,
 
 int mpu_reg_dump(void);
 int mpu_read_reg(unsigned char reg, unsigned char *data);
+
+#ifdef MPU_MAXIMAL
 int mpu_run_self_test(long *gyro, long *accel);
 int mpu_register_tap_cb(void (*func)(unsigned char, unsigned char));
+#endif // MPU_MAXIMAL
 
 #endif  /* #ifndef _INV_MPU_H_ */
 

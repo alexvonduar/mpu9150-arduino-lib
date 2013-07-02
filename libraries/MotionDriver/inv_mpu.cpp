@@ -576,6 +576,7 @@ int mpu_read_reg(unsigned char reg, unsigned char *data)
  *  @param[in]  int_param   Platform-specific parameters to interrupt API.
  *  @return     0 if successful.
  */
+
 int mpu_init(struct int_param_s *int_param)
 {
     unsigned char data[6], rev;
@@ -1733,6 +1734,8 @@ int mpu_set_int_latched(unsigned char enable)
     return 0;
 }
 
+#ifdef MPU_MAXIMAL
+
 #ifdef MPU6050
 static int get_accel_prod_shift(float *st_shift)
 {
@@ -2095,6 +2098,7 @@ restore:
 
     return result;
 }
+#endif // MPU_MAXIMAL
 
 /**
  *  @brief      Write to the DMP memory.

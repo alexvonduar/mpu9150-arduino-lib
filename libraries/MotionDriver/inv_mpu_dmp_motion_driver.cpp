@@ -694,6 +694,8 @@ int dmp_get_fifo_rate(unsigned short *rate)
     return 0;
 }
 
+#ifdef MPU_MAXIMAL
+
 /**
  *  @brief      Set tap threshold for a specific axis.
  *  @param[in]  axis    1, 2, and 4 for XYZ accel, respectively.
@@ -957,6 +959,7 @@ int dmp_set_pedometer_walk_time(unsigned long time)
     tmp[3] = (unsigned char)(time & 0xFF);
     return mpu_write_mem(D_PEDSTD_TIMECTR, 4, tmp);
 }
+#endif // MPU_MAXIMAL
 
 /**
  *  @brief      Enable DMP features.
@@ -1041,6 +1044,7 @@ int dmp_enable_feature(unsigned short mask)
         mpu_write_mem(CFG_GYRO_RAW_DATA, 4, tmp);
     }
 
+#ifdef MPU_MAXIMAL
     if (mask & DMP_FEATURE_TAP) {
         /* Enable tap. */
         tmp[0] = 0xF8;
@@ -1064,6 +1068,7 @@ int dmp_enable_feature(unsigned short mask)
     } else
         tmp[0] = 0xD8;
     mpu_write_mem(CFG_ANDROID_ORIENT_INT, 1, tmp);
+#endif // MPU_MAXIMAL
 
     if (mask & DMP_FEATURE_LP_QUAT)
         dmp_enable_lp_quat(1);
@@ -1170,6 +1175,7 @@ int dmp_enable_6x_lp_quat(unsigned char enable)
     return mpu_reset_fifo();
 }
 
+#ifdef MPU_MAXIMAL
 /**
  *  @brief      Decode the four-byte gesture data and execute any callbacks.
  *  @param[in]  gesture Gesture data from DMP packet.
@@ -1197,6 +1203,7 @@ static int decode_gesture(unsigned char *gesture)
 
     return 0;
 }
+#endif // MPU_MAXIMAL
 
 /**
  *  @brief      Specify when a DMP interrupt should occur.
@@ -1317,17 +1324,18 @@ int dmp_read_fifo(short *gyro, short *accel, long *quat,
         ii += 6;
         sensors[0] |= INV_XYZ_GYRO;
     }
-
+#ifdef MPU_MAXIMAL
     /* Gesture data is at the end of the DMP packet. Parse it and call
      * the gesture callbacks (if registered).
      */
     if (dmp->feature_mask & (DMP_FEATURE_TAP | DMP_FEATURE_ANDROID_ORIENT))
         decode_gesture(fifo_data + ii);
-
+#endif // MPU_MAXIMAL
     get_ms(timestamp);
     return 0;
 }
 
+#ifdef MPU_MAXIMAL
 /**
  *  @brief      Register a function to be executed on a tap event.
  *  The tap direction is represented by one of the following:
@@ -1356,6 +1364,7 @@ int dmp_register_android_orient_cb(void (*func)(unsigned char))
     dmp->android_orient_cb = func;
     return 0;
 }
+#endif // MPU_MAXIMAL
 
 /**
  *  @}
